@@ -17,9 +17,11 @@ function loadMessages() {
 function saveMessages() {
     try {
         localStorage.setItem('publicChatMessages', JSON.stringify(messages));
+        console.log('Messages saved:', messages);
     } catch (e) {
         console.error('Error saving messages:', e);
-        alert('Error saving message. Storage may be full.');\n    }
+        alert('Error saving message. Storage may be full.');
+    }
 }
 
 // Login function
@@ -33,6 +35,7 @@ function login() {
     }
 
     currentUser = username;
+    console.log('Logged in as:', currentUser);
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('chatSection').style.display = 'flex';
     document.getElementById('currentUser').textContent = `You: ${username}`;
@@ -41,11 +44,11 @@ function login() {
     displayMessages();
     document.getElementById('messageInput').focus();
 
-    // Refresh messages every 500ms for real-time effect
+    // Refresh messages every 1000ms
     refreshInterval = setInterval(() => {
         loadMessages();
         displayMessages();
-    }, 500);
+    }, 1000);
 }
 
 // Logout function
@@ -56,6 +59,7 @@ function logout() {
     document.getElementById('loginSection').style.display = 'block';
     document.getElementById('usernameInput').value = '';
     document.getElementById('usernameInput').focus();
+    messages = [];
 }
 
 // Send message
@@ -63,7 +67,10 @@ function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const messageText = messageInput.value.trim();
 
-    if (!messageText) {
+    console.log('Send message clicked. Text:', messageText, 'Current user:', currentUser);
+
+    if (!messageText || !currentUser) {
+        console.log('Prevented: empty message or no user logged in');
         return;
     }
 
@@ -74,7 +81,9 @@ function sendMessage() {
     };
 
     messages.push(message);
+    console.log('Message added:', message);
     saveMessages();
+    
     messageInput.value = '';
     displayMessages();
     messageInput.focus();
@@ -83,6 +92,12 @@ function sendMessage() {
 // Display all messages
 function displayMessages() {
     const messagesContainer = document.getElementById('messagesContainer');
+    
+    if (!messagesContainer) {
+        console.error('Messages container not found');
+        return;
+    }
+
     messagesContainer.innerHTML = '';
 
     if (!messages || messages.length === 0) {
@@ -90,7 +105,7 @@ function displayMessages() {
         return;
     }
 
-    messages.forEach(msg => {
+    messages.forEach((msg, index) => {
         const messageDiv = document.createElement('div');
         messageDiv.className = msg.username === currentUser ? 'message own' : 'message other';
         
@@ -128,12 +143,17 @@ function escapeHtml(text) {
 // Handle Enter key press
 function handleKeyPress(event) {
     if (event.key === 'Enter') {
+        event.preventDefault();
         sendMessage();
     }
 }
 
 // Initialize on load
 window.addEventListener('load', () => {
+    console.log('Page loaded');
     loadMessages();
-    document.getElementById('usernameInput').focus();
+    const usernameInput = document.getElementById('usernameInput');
+    if (usernameInput) {
+        usernameInput.focus();
+    }
 });
