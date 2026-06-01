@@ -1,27 +1,6 @@
-// Firebase Configuration
-const firebaseConfig = {
-    apiKey: "AIzaSyDy8h-5zJ0z3Q4K8wJ7zL5zQ9zZ0zJ7zL5",
-    authDomain: "public-chat-sync.firebaseapp.com",
-    databaseURL: "https://public-chat-sync-default-rtdb.firebaseio.com",
-    projectId: "public-chat-sync",
-    storageBucket: "public-chat-sync.appspot.com",
-    messagingSenderId: "123456789012",
-    appId: "1:123456789012:web:abcdef1234567890abcd"
-};
-
-// Initialize Firebase
-let db;
 let currentUser = '';
-let messagesRef;
-
-try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-    messagesRef = db.ref('publicChat/messages');
-    console.log('Firebase initialized successfully');
-} catch (error) {
-    console.error('Firebase init error:', error);
-}
+let pollInterval;
+const API_URL = '/api';
 
 // Login function
 function login() {
@@ -34,31 +13,33 @@ function login() {
     }
 
     currentUser = username;
-    console.log('Logged in as:', currentUser);
+    console.log('✅ Logged in as:', currentUser);
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('chatSection').style.display = 'flex';
     document.getElementById('currentUser').textContent = `You: ${username}`;
     
-    document.getElementById('messageInput').focus();
+    // Start polling for messages every 300ms
+    pollMessages();
+    pollInterval = setInterval(pollMessages, 300);
     
-    // Start listening for messages
-    startListeningToMessages();
+    document.getElementById('messageInput').focus();
 }
 
-// Start listening to messages in real-time
-function startListeningToMessages() {
-    messagesRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            displayMessages(data);
-        } else {
-            displayMessages({});
+// Poll messages from server
+async function pollMessages() {
+    try {
+        const response = await fetch(`${API_URL}/messages`);
+        if (response.ok) {
+            const data = await response.json();
+            displayMessages(data.messages || []);
         }
-    });
+    } catch (error) {
+        console.error('❌ Error fetching messages:', error);
+    }
 }
 
 // Send message
-function sendMessage() {
+async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const messageText = messageInput.value.trim();
 
@@ -73,34 +54,42 @@ function sendMessage() {
         id: Date.now()
     };
 
-    // Push to Firebase
-    messagesRef.child(message.id).set(message)
-        .then(() => {
-            console.log('Message sent:', message);
+    try {
+        const response = await fetch(`${API_URL}/messages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(message)
+        });
+
+        if (response.ok) {
+            console.log('✅ Message sent:', message.text);
             messageInput.value = '';
             messageInput.focus();
-        })
-        .catch(error => {
-            console.error('Error sending message:', error);
-            alert('Error sending message. Check your connection.');
-        });
+            // Refresh immediately to show message
+            await pollMessages();
+        } else {
+            alert('Error sending message');
+        }
+    } catch (error) {
+        console.error('❌ Error sending message:', error);
+        alert('Error sending message. Check your connection.');
+    }
 }
 
 // Display all messages
-function displayMessages(messagesObj) {
+function displayMessages(messagesArray) {
     const messagesContainer = document.getElementById('messagesContainer');
     
     if (!messagesContainer) return;
 
     messagesContainer.innerHTML = '';
 
-    if (!messagesObj || Object.keys(messagesObj).length === 0) {
+    if (!messagesArray || messagesArray.length === 0) {
         messagesContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No messages yet. Start chatting!</div>';
         return;
     }
-
-    // Convert to array and sort by timestamp
-    const messagesArray = Object.values(messagesObj).sort((a, b) => a.id - b.id);
 
     messagesArray.forEach(msg => {
         const messageDiv = document.createElement('div');
@@ -128,9 +117,7 @@ function displayMessages(messagesObj) {
 // Logout function
 function logout() {
     currentUser = '';
-    if (messagesRef) {
-        messagesRef.off();
-    }
+    clearInterval(pollInterval);
     document.getElementById('chatSection').style.display = 'none';
     document.getElementById('loginSection').style.display = 'block';
     document.getElementById('usernameInput').value = '';
@@ -159,6 +146,6 @@ function handleKeyPress(event) {
 
 // Initialize on load
 window.addEventListener('load', () => {
-    console.log('Page loaded');
+    console.log('🚀 Chat app loaded');
     document.getElementById('usernameInput').focus();
 });

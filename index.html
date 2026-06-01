@@ -9,19 +9,21 @@
 <body>
     <div class="container">
         <div class="login-section" id="loginSection">
-            <h1>Public Chat</h1>
+            <h1>💬 Public Chat</h1>
+            <p style="color: #666; margin-bottom: 20px;">Real-time messaging for everyone</p>
             <input 
                 type="text" 
                 id="usernameInput" 
                 placeholder="Enter your username"
                 class="input-field"
+                autofocus
             >
             <button onclick="login()" class="btn">Login</button>
         </div>
 
         <div class="chat-section" id="chatSection" style="display: none;">
             <div class="header">
-                <h2>Public Chat</h2>
+                <h2>💬 Public Chat</h2>
                 <div class="user-info">
                     <span id="currentUser"></span>
                     <button onclick="logout()" class="logout-btn">Logout</button>
@@ -37,6 +39,7 @@
                     placeholder="Type a message..."
                     class="message-input"
                     onkeypress="handleKeyPress(event)"
+                    autofocus
                 >
                 <button onclick="sendMessage()" class="send-btn">Send</button>
             </div>
