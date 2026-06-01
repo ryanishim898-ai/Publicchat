@@ -4,13 +4,22 @@ let refreshInterval;
 
 // Load messages from localStorage
 function loadMessages() {
-    const saved = localStorage.getItem('publicChatMessages');
-    messages = saved ? JSON.parse(saved) : [];
+    try {
+        const saved = localStorage.getItem('publicChatMessages');
+        messages = saved ? JSON.parse(saved) : [];
+    } catch (e) {
+        console.error('Error loading messages:', e);
+        messages = [];
+    }
 }
 
 // Save messages to localStorage
 function saveMessages() {
-    localStorage.setItem('publicChatMessages', JSON.stringify(messages));
+    try {
+        localStorage.setItem('publicChatMessages', JSON.stringify(messages));
+    } catch (e) {
+        console.error('Error saving messages:', e);
+        alert('Error saving message. Storage may be full.');\n    }
 }
 
 // Login function
@@ -75,6 +84,11 @@ function sendMessage() {
 function displayMessages() {
     const messagesContainer = document.getElementById('messagesContainer');
     messagesContainer.innerHTML = '';
+
+    if (!messages || messages.length === 0) {
+        messagesContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No messages yet. Start chatting!</div>';
+        return;
+    }
 
     messages.forEach(msg => {
         const messageDiv = document.createElement('div');
