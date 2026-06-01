@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Public Chat</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="login-section" id="loginSection">
+            <h1>Public Chat</h1>
+            <input 
+                type="text" 
+                id="usernameInput" 
+                placeholder="Enter your username"
+                class="input-field"
+            >
+            <button onclick="login()" class="btn">Login</button>
+        </div>
+
+        <div class="chat-section" id="chatSection" style="display: none;">
+            <div class="header">
+                <h2>Public Chat</h2>
+                <div class="user-info">
+                    <span id="currentUser"></span>
+                    <button onclick="logout()" class="logout-btn">Logout</button>
+                </div>
+            </div>
+            
+            <div class="messages" id="messagesContainer"></div>
+            
+            <div class="input-area">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Type a message..."
+                    class="message-input"
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button onclick="sendMessage()" class="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
